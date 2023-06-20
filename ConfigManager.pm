@@ -13,7 +13,14 @@ sub get_value_by_key {
     my $value = $self->{config_data};
     eval {
         foreach my $k (@keys) {
-            $value = $value->{$k};
+            if ( exists $value->{$k} ) {
+                $value = $value->{$k};
+            }
+            else {
+                # Fallback to the previous level key
+                shift @keys;
+                return $self->get_value_by_key( join( '.', @keys ) );
+            }
         }
     };
     return $value unless $@;

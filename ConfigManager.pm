@@ -74,25 +74,4 @@ sub set_option {
     $config_ref->{ $keys[-1] } = $option_value;
 }
 
-sub save_config {
-    my ( $self, $file_path ) = @_;
-    open( my $fh, '>', $file_path ) or die "Could not open file: $!";
-    $self->_write_config( $fh, $self->{config} );
-    close($fh);
-}
-
-sub _write_config {
-    my ( $self, $fh, $config, $prefix ) = @_;
-    $prefix ||= '';
-    foreach my $key ( keys %$config ) {
-        my $value = $config->{$key};
-        if ( ref($value) eq 'HASH' ) {
-            $self->_write_config( $fh, $value, "$prefix$key." );
-        }
-        else {
-            print $fh "$prefix$key=$value\n";
-        }
-    }
-}
-
 1;

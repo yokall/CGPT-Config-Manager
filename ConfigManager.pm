@@ -21,10 +21,35 @@ sub new {
 sub get_option {
     my ( $self, $option_name ) = @_;
     my @keys  = split( /\./, $option_name );
-    my $value = $self->{config};
+    my $value = $self->_get_value_from_keys( \@keys, $self->{config} );
 
-    # Try to find the value for the specified option_name
-    foreach my $key (@keys) {
+    # If the value is not found, try to find a fallback value
+    unless ( defined $value ) {
+        my $fallback_value =
+          $self->_get_fallback_value( \@keys, $self->{config} );
+        $value = $fallback_value if defined $fallback_value;
+    }
+
+    return $value;
+}
+
+sub _get_fallback_value {
+    my ( $self, $keys, $config ) = @_;
+
+    my $fallback_key = pop @$keys;
+    if ( exists $config->{$fallback_key} ) {
+        return $config->{$fallback_key};
+    }
+    else {
+        return undef;
+    }
+}
+
+sub _get_value_from_keys {
+    my ( $self, $keys, $config ) = @_;
+    my $value = $config;
+
+    foreach my $key (@$keys) {
         if ( ref($value) eq 'HASH' && exists $value->{$key} ) {
             $value = $value->{$key};
         }
@@ -34,28 +59,6 @@ sub get_option {
         }
     }
 
-    # If the value is not found, try to find a fallback value
-    unless ( defined $value ) {
-        my $fallback_key = shift @keys;
-        my $fallback_value =
-          $self->_get_value_from_keys( \@keys, $self->{config} );
-        $value = $fallback_value if defined $fallback_value;
-    }
-
-    return $value;
-}
-
-sub _get_value_from_keys {
-    my ( $self, $keys, $config ) = @_;
-    my $value = $config;
-    foreach my $key (@$keys) {
-        if ( ref($value) eq 'HASH' && exists $value->{$key} ) {
-            $value = $value->{$key};
-        }
-        else {
-            return undef;
-        }
-    }
     return $value;
 }
 

@@ -1,27 +1,33 @@
 use strict;
 use warnings;
-use Test::More;
 
+use Test::Simple tests => 3;
+
+# Include the ConfigManager module
 use lib '/home/colin/chat-gpt-config-manager';
-
 use ConfigManager;
 
+# Test data
+my $config_data = {
+    'file' => {
+        'level' => 'filelevel'
+    },
+    'level' => 'level'
+};
+
 # Create a new ConfigManager instance
-my $config_manager = ConfigManager->new();
+my $config_manager = ConfigManager->new($config_data);
 
-# Set option values
-$config_manager->set_option( 'file.level', 'custom_value1' );
-$config_manager->set_option( 'level',      'custom_value2' );
+# Test case 1: Retrieving a value by key
+my $file_level = $config_manager->get_value_by_key('file.level');
+ok( $file_level eq 'filelevel',
+    'Value retrieved correctly for key "file.level"' );
 
-# Test the fallback behavior
-is( $config_manager->get_option('file.level'),
-    'custom_value1', 'multi level key' );
-is( $config_manager->get_option('level'), 'custom_value2', 'root key' );
-is( $config_manager->get_option('nonexistent.level'),
-    'custom_value2', 'nonexistent root key falls back to 2nd key' );
-is( $config_manager->get_option('nonexistent'),
-    undef, 'A 1 part key that doesn\'t exisst should return undef' );
-is( $config_manager->get_option('file.nonexistent'),
-    undef, 'A 2 part key that doesn\'t exisst should return undef' );
+# Test case 2: Retrieving a value by key (top-level key)
+my $level = $config_manager->get_value_by_key('level');
+ok( $level eq 'level', 'Value retrieved correctly for top-level key "level"' );
 
-done_testing();
+# Test case 3: Retrieving a value for a non-existent key
+my $nonexistent = $config_manager->get_value_by_key('nonexistent');
+ok( !defined($nonexistent), 'Value is undefined for non-existent key' );
+
